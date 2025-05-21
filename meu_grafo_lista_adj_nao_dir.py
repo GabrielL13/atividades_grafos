@@ -123,7 +123,7 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
                         pilha.append(v1)
                         arestas_resultado.append((aresta.rotulo, v2, v1))
 
-        # Criar novo grafo com os mesmos rótulos de vértices
+        
         grafo_dfs = MeuGrafo()
         for vertice in self.vertices:
             grafo_dfs.adiciona_vertice(vertice.rotulo)
@@ -166,3 +166,20 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
             if rotulo not in grafo_bfs.arestas:
                 grafo_bfs.adiciona_aresta(rotulo, v1, v2)
         return grafo_bfs
+
+    def __eq__(self, other):
+        
+        if not isinstance(other, MeuGrafo):
+            return False
+        if len(self.vertices) != len(other.vertices):
+            return False
+        if len(self.arestas) != len(other.arestas):
+            return False
+        vertices_self = sorted([v.rotulo for v in self.vertices])
+        vertices_other = sorted([v.rotulo for v in other.vertices])
+        if vertices_self != vertices_other:
+            return False
+
+        arestas_self = sorted([(a.rotulo, frozenset([a.v1.rotulo, a.v2.rotulo])) for a in self.arestas.values()])
+        arestas_other = sorted([(a.rotulo, frozenset([a.v1.rotulo, a.v2.rotulo])) for a in other.arestas.values()])
+        return arestas_self == arestas_other

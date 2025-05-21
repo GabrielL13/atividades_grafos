@@ -75,6 +75,16 @@ class TestGrafo(unittest.TestCase):
         # Grafo p\teste de remoção em casta
         self.g_r = GrafoBuilder().tipo(MeuGrafo()).vertices(2).arestas(1).build()
 
+
+        # Árvore DFS do grafo da Paraíba
+        self.g_p_dfs = MeuGrafo()
+        self.g_p_dfs.adiciona_vertice("J")
+        self.g_p_dfs.adiciona_vertice("C")
+        self.g_p_dfs.adiciona_aresta("a1", "J", "C")
+        self.g_p_dfs.adiciona_aresta("a2", "J", "C")
+
+
+
     def test_adiciona_aresta(self):
         self.assertTrue(self.g_p.adiciona_aresta('a10', 'J', 'C'))
         a = Aresta("zxc", self.g_p.get_vertice("C"), self.g_p.get_vertice("Z"))
@@ -136,6 +146,8 @@ class TestGrafo(unittest.TestCase):
 
     def test_grau(self):
         # Paraíba
+        self.assertEqual(self.g_p, self.g_p2)
+
         self.assertEqual(self.g_p.grau('J'), 1)
         self.assertEqual(self.g_p.grau('C'), 7)
         self.assertEqual(self.g_p.grau('E'), 2)
@@ -189,7 +201,17 @@ class TestGrafo(unittest.TestCase):
         self.assertFalse((self.g_l1.eh_completo()))
         self.assertFalse((self.g_l2.eh_completo()))
         self.assertFalse((self.g_l3.eh_completo()))
-        self.assertFalse((self.g_l4.eh_completo()))
-        self.assertFalse((self.g_l5.eh_completo()))
-        self.assertFalse((self.g_d.eh_completo()))
-        self.assertFalse((self.g_d2.eh_completo()))
+        self.assertFalse(self.g_l4.eh_completo())
+        self.assertFalse(self.g_l5.eh_completo())
+        self.assertFalse(self.g_d.eh_completo())
+        self.assertFalse(self.g_d2.eh_completo())
+        self.assertTrue(self.g_p_dfs.eh_completo())
+
+    def test_dfs(self):
+        self.assertEqual(self.g_p.dfs("J"), self.g_p_dfs)
+        print("DFS Resultado:")
+        print(self.g_p.dfs("J").vertices)
+        print(self.g_p.dfs("J").arestas)
+        print("DFS Esperado:")
+        print(self.g_p_dfs.vertices)
+        print(self.g_p_dfs.arestas)

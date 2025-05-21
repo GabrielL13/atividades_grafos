@@ -11,14 +11,25 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         Onde X, Z e W são vértices no grafo que não tem uma aresta entre eles.
         :return: Um objeto do tipo set que contém os pares de vértices não adjacentes
         '''
-        pass # Apague essa instrução e inicie seu código aqui
+        nao_adj = set()
+        for i, v1 in enumerate(self.vertices):
+            for v2 in self.vertices[i + 1:]:  # garante que não repete pares invertidos
+                extremos = {v1.rotulo, v2.rotulo}
+                existe_aresta = any({a.v1.rotulo, a.v2.rotulo} == extremos for a in self.arestas.values())
+                if not existe_aresta:
+                    par_formatado = f"{v1.rotulo}-{v2.rotulo}"
+                    nao_adj.add(par_formatado)
+        return nao_adj
 
     def ha_laco(self):
         '''
         Verifica se existe algum laço no grafo.
         :return: Um valor booleano que indica se existe algum laço.
         '''
-        pass
+        for a in self.arestas.values():
+            if a.v1 == a.v2:
+                return True
+        return False
 
     def grau(self, V=''):
         '''
@@ -27,14 +38,30 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         :return: Um valor inteiro que indica o grau do vértice
         :raises: VerticeInvalidoError se o vértice não existe no grafo
         '''
-        pass
+        if not self.existe_rotulo_vertice(V):
+            raise VerticeInvalidoError()
+        grau = 0
+        for aresta in self.arestas.values():
+            if aresta.v1.rotulo == V and aresta.v2.rotulo == V:
+                grau += 2  # laço conta duas vezes
+            elif aresta.v1.rotulo == V or aresta.v2.rotulo == V:
+                grau += 1
+        return grau
+
 
     def ha_paralelas(self):
         '''
         Verifica se há arestas paralelas no grafo
         :return: Um valor booleano que indica se existem arestas paralelas no grafo.
         '''
-        pass
+        pares = {}
+        for a in self.arestas.values():
+            extremos = frozenset([a.v1.rotulo, a.v2.rotulo])
+            if extremos in pares:
+                return True
+            else:
+                pares[extremos] = 1
+        return False
 
     def arestas_sobre_vertice(self, V):
         '''
@@ -43,11 +70,99 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         :return: Uma lista os rótulos das arestas que incidem sobre o vértice
         :raises: VerticeInvalidoException se o vértice não existe no grafo
         '''
-        pass
+        if not self.existe_rotulo_vertice(V):
+            raise VerticeInvalidoError()
+
+        resultado = set()
+        for rotulo, aresta in self.arestas.items():
+            if aresta.v1.rotulo == V or aresta.v2.rotulo == V:
+                resultado.add(rotulo)
+        return resultado
 
     def eh_completo(self):
         '''
         Verifica se o grafo é completo.
         :return: Um valor booleano que indica se o grafo é completo
         '''
-        pass
+        if self.ha_laco():
+            return False
+
+        for v1 in self.vertices:
+            for v2 in self.vertices:
+                if v1 != v2:
+                    extremos = {v1.rotulo, v2.rotulo}
+                    existe_aresta = any({a.v1.rotulo, a.v2.rotulo} == extremos for a in self.arestas.values())
+                    if not existe_aresta:
+                        return False
+        return True
+    
+    def dfs(self, V=''):
+        '''
+        Executa uma busca em profundidade (DFS) a partir do vértice V
+        :param V: vértice raiz da busca
+        :return: grafo representando a árvore de busca DFS
+        '''
+        if not self.existe_rotulo_vertice(V):
+            raise VerticeInvalidoError()
+
+        visitados = set()
+        arestas_resultado = []
+        pilha = [V]
+
+        while pilha:
+            atual = pilha.pop()
+            if atual not in visitados:
+                visitados.add(atual)
+                for aresta in self.arestas.values():
+                    v1 = aresta.v1.rotulo
+                    v2 = aresta.v2.rotulo
+                    if v1 == atual and v2 not in visitados:
+                        pilha.append(v2)
+                        arestas_resultado.append((aresta.rotulo, v1, v2))
+                    elif v2 == atual and v1 not in visitados:
+                        pilha.append(v1)
+                        arestas_resultado.append((aresta.rotulo, v2, v1))
+
+        # Criar novo grafo com os mesmos rótulos de vértices
+        grafo_dfs = MeuGrafo()
+        for vertice in self.vertices:
+            grafo_dfs.adiciona_vertice(vertice.rotulo)
+
+        for rotulo, v1, v2 in arestas_resultado:
+            if rotulo not in grafo_dfs.arestas:
+                grafo_dfs.adiciona_aresta(rotulo, v1, v2)
+        return grafo_dfs
+
+
+    def bfs(self, V=''):
+        '''
+        Executa uma busca em largura (BFS) a partir do vértice V
+        :param V: vértice raiz da busca
+        :return: grafo representando a árvore de busca BFS
+        '''
+        if not self.existe_rotulo_vertice(V):
+            raise VerticeInvalidoError()
+
+        visitados = set()
+        fila = [V]
+        arestas_resultado = []
+
+        while fila:
+            atual = fila.pop(0)
+            if atual not in visitados:
+                visitados.add(atual)
+                for aresta in self.arestas.values():
+                    v1 = aresta.v1.rotulo
+                    v2 = aresta.v2.rotulo
+                    if v1 == atual and v2 not in visitados and v2 not in fila:
+                        fila.append(v2)
+                        arestas_resultado.append((aresta.rotulo, v1, v2))
+                    elif v2 == atual and v1 not in visitados and v1 not in fila:
+                        fila.append(v1)
+                        arestas_resultado.append((aresta.rotulo, v2, v1))
+
+        grafo_bfs = MeuGrafo([v.rotulo for v in self.vertices])
+        for rotulo, v1, v2 in arestas_resultado:
+            if rotulo not in grafo_bfs.arestas:
+                grafo_bfs.adiciona_aresta(rotulo, v1, v2)
+        return grafo_bfs

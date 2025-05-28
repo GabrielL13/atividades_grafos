@@ -43,7 +43,7 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         grau = 0
         for aresta in self.arestas.values():
             if aresta.v1.rotulo == V and aresta.v2.rotulo == V:
-                grau += 2  # laço conta duas vezes
+                grau += 2  
             elif aresta.v1.rotulo == V or aresta.v2.rotulo == V:
                 grau += 1
         return grau
@@ -102,36 +102,28 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         :param V: vértice raiz da busca
         :return: grafo representando a árvore de busca DFS
         '''
-        if not self.existe_rotulo_vertice(V):
-            raise VerticeInvalidoError()
-
-        visitados = set()
-        arestas_resultado = []
-        pilha = [V]
-
-        while pilha:
-            atual = pilha.pop()
-            if atual not in visitados:
-                visitados.add(atual)
-                for aresta in self.arestas.values():
-                    v1 = aresta.v1.rotulo
-                    v2 = aresta.v2.rotulo
-                    if v1 == atual and v2 not in visitados:
-                        pilha.append(v2)
-                        arestas_resultado.append((aresta.rotulo, v1, v2))
-                    elif v2 == atual and v1 not in visitados:
-                        pilha.append(v1)
-                        arestas_resultado.append((aresta.rotulo, v2, v1))
-
         
-        grafo_dfs = MeuGrafo()
-        for vertice in self.vertices:
-            grafo_dfs.adiciona_vertice(vertice.rotulo)
+        if not self.existe_rotulo_vertice(V):
+            raise VerticeInvalidoError(f"O vértice {V} não existe no grafo.")
+        
+        arvore_dfs = MeuGrafo()
+        visitados = set()
 
-        for rotulo, v1, v2 in arestas_resultado:
-            if rotulo not in grafo_dfs.arestas:
-                grafo_dfs.adiciona_aresta(rotulo, v1, v2)
-        return grafo_dfs
+        def explorar(v):
+            vertice = self.get_vertice(v) 
+            visitados.add(vertice.rotulo)  
+            for aresta in self.arestas.values():
+                if aresta.eh_ponta(vertice):
+                    outro_v = aresta.v1 if aresta.v2 == vertice else aresta.v2
+                    
+                    if outro_v.rotulo not in visitados:
+                        arvore_dfs.adiciona_vertice(outro_v)
+                        arvore_dfs.adiciona_aresta(aresta.rotulo, aresta.v1, aresta.v2, aresta.peso)
+                        explorar(outro_v.rotulo)
+
+        explorar(V)
+        return arvore_dfs
+        
 
 
     def bfs(self, V=''):
@@ -140,46 +132,4 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         :param V: vértice raiz da busca
         :return: grafo representando a árvore de busca BFS
         '''
-        if not self.existe_rotulo_vertice(V):
-            raise VerticeInvalidoError()
-
-        visitados = set()
-        fila = [V]
-        arestas_resultado = []
-
-        while fila:
-            atual = fila.pop(0)
-            if atual not in visitados:
-                visitados.add(atual)
-                for aresta in self.arestas.values():
-                    v1 = aresta.v1.rotulo
-                    v2 = aresta.v2.rotulo
-                    if v1 == atual and v2 not in visitados and v2 not in fila:
-                        fila.append(v2)
-                        arestas_resultado.append((aresta.rotulo, v1, v2))
-                    elif v2 == atual and v1 not in visitados and v1 not in fila:
-                        fila.append(v1)
-                        arestas_resultado.append((aresta.rotulo, v2, v1))
-
-        grafo_bfs = MeuGrafo([v.rotulo for v in self.vertices])
-        for rotulo, v1, v2 in arestas_resultado:
-            if rotulo not in grafo_bfs.arestas:
-                grafo_bfs.adiciona_aresta(rotulo, v1, v2)
-        return grafo_bfs
-
-    def __eq__(self, other):
-        
-        if not isinstance(other, MeuGrafo):
-            return False
-        if len(self.vertices) != len(other.vertices):
-            return False
-        if len(self.arestas) != len(other.arestas):
-            return False
-        vertices_self = sorted([v.rotulo for v in self.vertices])
-        vertices_other = sorted([v.rotulo for v in other.vertices])
-        if vertices_self != vertices_other:
-            return False
-
-        arestas_self = sorted([(a.rotulo, frozenset([a.v1.rotulo, a.v2.rotulo])) for a in self.arestas.values()])
-        arestas_other = sorted([(a.rotulo, frozenset([a.v1.rotulo, a.v2.rotulo])) for a in other.arestas.values()])
-        return arestas_self == arestas_other
+        pass

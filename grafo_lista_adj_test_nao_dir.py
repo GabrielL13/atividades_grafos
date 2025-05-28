@@ -207,11 +207,45 @@ class TestGrafo(unittest.TestCase):
         self.assertFalse(self.g_d2.eh_completo())
         self.assertTrue(self.g_p_dfs.eh_completo())
 
-    def test_dfs(self):
-        self.assertEqual(self.g_p.dfs("J"), self.g_p_dfs)
-        print("DFS Resultado:")
-        print(self.g_p.dfs("J").vertices)
-        print(self.g_p.dfs("J").arestas)
-        print("DFS Esperado:")
-        print(self.g_p_dfs.vertices)
-        print(self.g_p_dfs.arestas)
+    def test_dfs_completo(self):
+
+        expected_order_grafo_simples = ['J', 'C', 'E', 'P', 'M', 'T', 'Z']
+        visited = self.g_p.dfs('J')
+        self.assertEqual(visited, expected_order_grafo_simples, "Erro no DFS para o grafo simples")
+
+        expected_order_grafo_desconexo = ['A', 'B']
+        visited = self.g_d.dfs('A')
+        self.assertEqual(visited, expected_order_grafo_desconexo, "Erro no DFS para o grafo desconexo")
+        self.assertNotIn('C', visited, "DFS deve visitar apenas os vértices no mesmo componente conexo")
+
+        expected_order_grafo_lacos = ['D']
+        visited = self.g_l4.dfs('D')
+        self.assertEqual(visited, expected_order_grafo_lacos, "Erro no DFS para o grafo com laços")
+
+        expected_order_grafo_ciclo = ['A', 'B', 'C']
+        visited = self.g_l2.dfs('A')
+        self.assertEqual(visited, expected_order_grafo_ciclo, "Erro no DFS para o grafo com ciclo")
+
+        empty_graph = MeuGrafo()
+        visited = empty_graph.dfs('A')  # Nenhum vértice ou aresta, portanto, a função deve retornar uma lista vazia ou lançar erro
+        self.assertEqual(visited, [], "DFS em grafo vazio não retornou lista vazia")
+
+        with self.assertRaises(VerticeInvalidoError):
+            self.g_p.dfs('Inexistente')  # Tenta fazer DFS a partir de um vértice inexistente, o que deve lançar erro
+
+        single_vertex_graph = GrafoBuilder().tipo(MeuGrafo()).vertices(['A']).build()
+        visited = single_vertex_graph.dfs('A')
+        self.assertEqual(visited, ['A'], "Erro no DFS para o grafo com um único vértice")
+
+        visited = self.g_p.dfs('J')
+        self.assertTrue('J' in visited, "O vértice de início 'J' não foi visitado")
+        self.assertTrue('C' in visited, "O vértice 'C' não foi visitado")
+        self.assertTrue('E' in visited, "O vértice 'E' não foi visitado")
+        self.assertTrue('T' in visited, "O vértice 'T' não foi visitado")
+
+        visited = self.g_d.dfs('A')
+        self.assertIn('A', visited, "DFS não iniciou corretamente no vértice 'A'")
+        self.assertIn('B', visited, "DFS não visitou o vértice 'B'")
+        self.assertNotIn('C', visited, "DFS deve visitar apenas os vértices no componente de 'A'")
+        self.assertNotIn('D', visited, "DFS deve visitar apenas o componente conectado ao vértice 'A'")
+

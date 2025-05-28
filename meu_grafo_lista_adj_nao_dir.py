@@ -102,24 +102,22 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         :param V: vértice raiz da busca
         :return: grafo representando a árvore de busca DFS
         '''
-        
         if not self.existe_rotulo_vertice(V):
             raise VerticeInvalidoError(f"O vértice {V} não existe no grafo.")
-        
+
         arvore_dfs = MeuGrafo()
         visitados = set()
-
+        arvore_dfs.adiciona_vertice(V)
         def explorar(v):
-            vertice = self.get_vertice(v) 
-            visitados.add(vertice.rotulo)  
+            visitados.add(v)
             for aresta in self.arestas.values():
-                if aresta.eh_ponta(vertice):
-                    outro_v = aresta.v1 if aresta.v2 == vertice else aresta.v2
-                    
-                    if outro_v.rotulo not in visitados:
+                if aresta.v1.rotulo == v or aresta.v2.rotulo == v:
+                    outro_v = aresta.v2.rotulo if aresta.v1.rotulo == v else aresta.v1.rotulo
+
+                    if outro_v not in visitados:
                         arvore_dfs.adiciona_vertice(outro_v)
-                        arvore_dfs.adiciona_aresta(aresta.rotulo, aresta.v1, aresta.v2, aresta.peso)
-                        explorar(outro_v.rotulo)
+                        arvore_dfs.adiciona_aresta(aresta.rotulo, v, outro_v, aresta.peso)
+                        explorar(outro_v)
 
         explorar(V)
         return arvore_dfs
@@ -132,4 +130,29 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         :param V: vértice raiz da busca
         :return: grafo representando a árvore de busca BFS
         '''
-        pass
+        if not self.existe_rotulo_vertice(V):
+            raise VerticeInvalidoError(f"O vértice {V} não existe no grafo.")
+
+        from collections import deque
+        arvore_bfs = MeuGrafo()
+        visitados = set()
+        fila = deque()
+        arvore_bfs.adiciona_vertice(V)
+        visitados.add(V)
+        fila.append(V)
+
+        while fila:
+            atual = fila.popleft()
+
+            for aresta in self.arestas.values():
+                if aresta.v1.rotulo == atual or aresta.v2.rotulo == atual:
+                    vizinho = aresta.v2.rotulo if aresta.v1.rotulo == atual else aresta.v1.rotulo
+
+                    if vizinho not in visitados:
+                        visitados.add(vizinho)
+                        fila.append(vizinho)
+
+                        arvore_bfs.adiciona_vertice(vizinho)
+                        arvore_bfs.adiciona_aresta(aresta.rotulo, atual, vizinho, aresta.peso)
+
+        return arvore_bfs

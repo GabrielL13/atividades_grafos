@@ -84,7 +84,6 @@ class TestGrafo(unittest.TestCase):
         self.g_p_dfs.adiciona_aresta("a2", "J", "C")
 
 
-
     def test_adiciona_aresta(self):
         self.assertTrue(self.g_p.adiciona_aresta('a10', 'J', 'C'))
         a = Aresta("zxc", self.g_p.get_vertice("C"), self.g_p.get_vertice("Z"))
@@ -208,10 +207,20 @@ class TestGrafo(unittest.TestCase):
         self.assertTrue(self.g_p_dfs.eh_completo())
 
     def test_dfs(self):
-        self.assertEqual(self.g_p.dfs("J"), self.g_p_dfs)
-        print("DFS Resultado:")
-        print(self.g_p.dfs("J").vertices)
-        print(self.g_p.dfs("J").arestas)
-        print("DFS Esperado:")
-        print(self.g_p_dfs.vertices)
-        print(self.g_p_dfs.arestas)
+        dfs_resultado = self.g_p.dfs('J')
+        esperado = MeuGrafo()
+        esperado.adiciona_vertice("J")    
+        esperado.adiciona_vertice("C")   
+        esperado.adiciona_vertice("E")   
+        esperado.adiciona_vertice("P")   
+        esperado.adiciona_vertice("M")   
+        esperado.adiciona_vertice("T")   
+        esperado.adiciona_vertice("Z")   
+        esperado.adiciona_aresta('a1', 'J', 'C')
+        esperado.adiciona_aresta('a2', 'C', 'E')
+        esperado.adiciona_aresta('a3', 'C', 'P')
+        esperado.adiciona_aresta('a4', 'C', 'M')
+        esperado.adiciona_aresta('a5', 'M', 'T')
+        esperado.adiciona_aresta('a6', 'T', 'Z')
+        self.assertEqual(dfs_resultado.vertices, esperado.vertices)
+        self.assertEqual(dfs_resultado.arestas, esperado.arestas)

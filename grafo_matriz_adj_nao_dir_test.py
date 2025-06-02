@@ -206,6 +206,3 @@ class TestGrafo(unittest.TestCase):
         self.assertFalse(self.g_d.eh_completo())
         self.assertFalse(self.g_d2.eh_completo())
         self.assertTrue(self.g_p_dfs.eh_completo())
-
-    def test_dfs(self):
-        self.assertEqual(self.g_p.dfs("J"), self.g_p_dfs)

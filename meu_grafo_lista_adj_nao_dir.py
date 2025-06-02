@@ -13,12 +13,11 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         '''
         nao_adj = set()
         for i, v1 in enumerate(self.vertices):
-            for v2 in self.vertices[i + 1:]:  # garante que não repete pares invertidos
+            for v2 in self.vertices[i + 1:]:
                 extremos = {v1.rotulo, v2.rotulo}
                 existe_aresta = any({a.v1.rotulo, a.v2.rotulo} == extremos for a in self.arestas.values())
                 if not existe_aresta:
-                    par_formatado = f"{v1.rotulo}-{v2.rotulo}"
-                    nao_adj.add(par_formatado)
+                    nao_adj.add(f"{v1.rotulo}-{v2.rotulo}")
         return nao_adj
 
     def ha_laco(self):
@@ -26,10 +25,7 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         Verifica se existe algum laço no grafo.
         :return: Um valor booleano que indica se existe algum laço.
         '''
-        for a in self.arestas.values():
-            if a.v1 == a.v2:
-                return True
-        return False
+        return any(a.v1 == a.v2 for a in self.arestas.values())
 
     def grau(self, V=''):
         '''
@@ -43,7 +39,7 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         grau = 0
         for aresta in self.arestas.values():
             if aresta.v1.rotulo == V and aresta.v2.rotulo == V:
-                grau += 2  # laço conta duas vezes
+                grau += 2
             elif aresta.v1.rotulo == V or aresta.v2.rotulo == V:
                 grau += 1
         return grau
@@ -73,11 +69,8 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         if not self.existe_rotulo_vertice(V):
             raise VerticeInvalidoError()
 
-        resultado = set()
-        for rotulo, aresta in self.arestas.items():
-            if aresta.v1.rotulo == V or aresta.v2.rotulo == V:
-                resultado.add(rotulo)
-        return resultado
+        return {rotulo for rotulo, aresta in self.arestas.items()
+                if aresta.v1.rotulo == V or aresta.v2.rotulo == V}
 
     def eh_completo(self):
         '''
@@ -86,14 +79,12 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         '''
         if self.ha_laco():
             return False
-
-        for v1 in self.vertices:
-            for v2 in self.vertices:
-                if v1 != v2:
-                    extremos = {v1.rotulo, v2.rotulo}
-                    existe_aresta = any({a.v1.rotulo, a.v2.rotulo} == extremos for a in self.arestas.values())
-                    if not existe_aresta:
-                        return False
+        for i, v1 in enumerate(self.vertices):
+            for v2 in self.vertices[i + 1:]:
+                extremos = {v1.rotulo, v2.rotulo}
+                existe_aresta = any({a.v1.rotulo, a.v2.rotulo} == extremos for a in self.arestas.values())
+                if not existe_aresta:
+                    return False
         return True
     
     def dfs(self, V=''):
@@ -105,32 +96,26 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         if not self.existe_rotulo_vertice(V):
             raise VerticeInvalidoError()
 
-        visitados = set()
-        arestas_resultado = []
-        pilha = [V]
+        def visitar(vertice_atual):
+            visitados.add(vertice_atual)
+            vizinhos = []
+            for aresta in self.arestas.values():
+                v1 = aresta.v1.rotulo
+                v2 = aresta.v2.rotulo
+                if v1 == vertice_atual and v2 not in visitados:
+                    vizinhos.append((aresta.rotulo, v2))
+                elif v2 == vertice_atual and v1 not in visitados:
+                    vizinhos.append((aresta.rotulo, v1))
+            vizinhos.sort(key=lambda x: x[1])
+            for rotulo_aresta, vizinho in vizinhos:
+                grafo_dfs.adiciona_aresta(rotulo_aresta, vertice_atual, vizinho)
+                visitar(vizinho)
 
-        while pilha:
-            atual = pilha.pop()
-            if atual not in visitados:
-                visitados.add(atual)
-                for aresta in self.arestas.values():
-                    v1 = aresta.v1.rotulo
-                    v2 = aresta.v2.rotulo
-                    if v1 == atual and v2 not in visitados:
-                        pilha.append(v2)
-                        arestas_resultado.append((aresta.rotulo, v1, v2))
-                    elif v2 == atual and v1 not in visitados:
-                        pilha.append(v1)
-                        arestas_resultado.append((aresta.rotulo, v2, v1))
-
-        
         grafo_dfs = MeuGrafo()
-        for vertice in self.vertices:
-            grafo_dfs.adiciona_vertice(vertice.rotulo)
-
-        for rotulo, v1, v2 in arestas_resultado:
-            if rotulo not in grafo_dfs.arestas:
-                grafo_dfs.adiciona_aresta(rotulo, v1, v2)
+        for v in self.vertices:
+            grafo_dfs.adiciona_vertice(v.rotulo)
+        visitados = set()
+        visitar(V)
         return grafo_dfs
 
 
@@ -143,43 +128,73 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         if not self.existe_rotulo_vertice(V):
             raise VerticeInvalidoError()
 
+        grafo_bfs = MeuGrafo([v.rotulo for v in self.vertices])
         visitados = set()
         fila = [V]
-        arestas_resultado = []
 
         while fila:
             atual = fila.pop(0)
-            if atual not in visitados:
-                visitados.add(atual)
-                for aresta in self.arestas.values():
-                    v1 = aresta.v1.rotulo
-                    v2 = aresta.v2.rotulo
-                    if v1 == atual and v2 not in visitados and v2 not in fila:
-                        fila.append(v2)
-                        arestas_resultado.append((aresta.rotulo, v1, v2))
-                    elif v2 == atual and v1 not in visitados and v1 not in fila:
-                        fila.append(v1)
-                        arestas_resultado.append((aresta.rotulo, v2, v1))
+            visitados.add(atual)
 
-        grafo_bfs = MeuGrafo([v.rotulo for v in self.vertices])
-        for rotulo, v1, v2 in arestas_resultado:
-            if rotulo not in grafo_bfs.arestas:
-                grafo_bfs.adiciona_aresta(rotulo, v1, v2)
+            for aresta in self.arestas.values():
+                v1 = aresta.v1.rotulo
+                v2 = aresta.v2.rotulo
+
+                vizinho = None
+                if v1 == atual and v2 not in visitados and v2 not in fila:
+                    vizinho = v2
+                elif v2 == atual and v1 not in visitados and v1 not in fila:
+                    vizinho = v1
+
+                if vizinho:
+                    grafo_bfs.adiciona_aresta(aresta.rotulo, atual, vizinho)
+                    fila.append(vizinho)
+
         return grafo_bfs
 
-    def __eq__(self, other):
-        
-        if not isinstance(other, MeuGrafo):
-            return False
-        if len(self.vertices) != len(other.vertices):
-            return False
-        if len(self.arestas) != len(other.arestas):
-            return False
-        vertices_self = sorted([v.rotulo for v in self.vertices])
-        vertices_other = sorted([v.rotulo for v in other.vertices])
-        if vertices_self != vertices_other:
+    
+    def ha_ciclo(self):
+        '''
+        Verifica se existe algum ciclo no grafo.
+        :return: Uma lista com a sequência de vértices e arestas que formam o ciclo, 
+        ou False se não houver ciclo.
+        '''
+        visitados = set()
+
+        def dfs_ciclo(vertice, pai, caminho):
+            visitados.add(vertice)
+            for aresta in self.arestas.values():
+                v1 = aresta.v1.rotulo
+                v2 = aresta.v2.rotulo
+
+                vizinho = None
+                if v1 == vertice:
+                    vizinho = v2
+                elif v2 == vertice:
+                    vizinho = v1
+
+                if vizinho:
+                    if vizinho not in visitados:
+                        # Adiciona o vértice e a aresta no caminho
+                        caminho.append(aresta.rotulo)
+                        caminho.append(vizinho)
+                        resultado = dfs_ciclo(vizinho, vertice, caminho)
+                        if resultado:
+                            return resultado
+                        # Se não encontrou ciclo nesse caminho, volta
+                        caminho.pop()
+                        caminho.pop()
+                    elif vizinho != pai:
+                        # Ciclo encontrado
+                        caminho.append(aresta.rotulo)
+                        caminho.append(vizinho)
+                        return caminho
             return False
 
-        arestas_self = sorted([(a.rotulo, frozenset([a.v1.rotulo, a.v2.rotulo])) for a in self.arestas.values()])
-        arestas_other = sorted([(a.rotulo, frozenset([a.v1.rotulo, a.v2.rotulo])) for a in other.arestas.values()])
-        return arestas_self == arestas_other
+        for v in self.vertices:
+            if v.rotulo not in visitados:
+                caminho = [v.rotulo]  # Inicia o caminho pelo vértice atual
+                resultado = dfs_ciclo(v.rotulo, None, caminho)
+                if resultado:
+                    return resultado
+        return False

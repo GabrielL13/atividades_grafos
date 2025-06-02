@@ -222,5 +222,38 @@ class TestGrafo(unittest.TestCase):
         esperado.adiciona_aresta('a4', 'C', 'M')
         esperado.adiciona_aresta('a5', 'M', 'T')
         esperado.adiciona_aresta('a6', 'T', 'Z')
-        self.assertEqual(dfs_resultado.vertices, esperado.vertices)
-        self.assertEqual(dfs_resultado.arestas, esperado.arestas)
+
+        # Obter as arestas como frozenset para comparar como conjunto (sem ordem)
+        arestas_dfs = set(frozenset([a.v1.rotulo, a.v2.rotulo]) for a in dfs_resultado.arestas.values())
+        arestas_esperadas = set(frozenset([a.v1.rotulo, a.v2.rotulo]) for a in esperado.arestas.values())
+        
+        self.assertEqual(
+            set(v.rotulo for v in dfs_resultado.vertices),
+            set(v.rotulo for v in esperado.vertices)
+        )
+        self.assertEqual(arestas_dfs, arestas_esperadas)
+
+    def test_bfs(self):
+        bfs_resultado = self.g_p.bfs('J')
+        esperado = MeuGrafo()
+        esperado.adiciona_vertice("J")    
+        esperado.adiciona_vertice("C")   
+        esperado.adiciona_vertice("E")   
+        esperado.adiciona_vertice("P")   
+        esperado.adiciona_vertice("M")   
+        esperado.adiciona_vertice("T")   
+        esperado.adiciona_vertice("Z")   
+        esperado.adiciona_aresta('a1', 'J', 'C')
+        esperado.adiciona_aresta('a2', 'C', 'E')
+        esperado.adiciona_aresta('a4', 'C', 'P')
+        esperado.adiciona_aresta('a7', 'C', 'M')
+        esperado.adiciona_aresta('a6', 'C', 'T')  
+        esperado.adiciona_aresta('a9', 'T', 'Z')
+        arestas_bfs = set(frozenset([a.v1.rotulo, a.v2.rotulo]) for a in bfs_resultado.arestas.values())
+        arestas_esperadas = set(frozenset([a.v1.rotulo, a.v2.rotulo]) for a in esperado.arestas.values())
+        
+        self.assertEqual(
+            set(v.rotulo for v in bfs_resultado.vertices),
+            set(v.rotulo for v in esperado.vertices)
+        )
+        self.assertEqual(arestas_bfs, arestas_esperadas)

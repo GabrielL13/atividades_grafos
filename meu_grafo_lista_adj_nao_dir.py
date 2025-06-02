@@ -184,3 +184,98 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
                 grafo_bfs.adiciona_aresta(aresta.rotulo, origem, proximo)
 
         return grafo_bfs
+    
+    def ha_ciclo(self):
+        def dfs_ciclo(v, pai, visitados):
+            visitados.add(v)
+            for aresta in self.arestas.values():
+                if aresta.v1.rotulo == v:
+                    vizinho = aresta.v2.rotulo
+                elif aresta.v2.rotulo == v:
+                    vizinho = aresta.v1.rotulo
+                else:
+                    continue
+                
+                if vizinho not in visitados:
+                    if dfs_ciclo(vizinho, v, visitados):
+                        return True
+                elif vizinho != pai:
+                    # Encontrou um vértice visitado diferente do pai -> ciclo
+                    return True
+            return False
+
+        visitados = set()
+        for vertice in [v.rotulo for v in self.vertices]:
+            if vertice not in visitados:
+                if dfs_ciclo(vertice, None, visitados):
+                    return True
+        return False
+    
+    def eh_arvore(self):
+        # Verifica ciclo
+        if self.ha_ciclo():
+            return False
+        
+        # Verifica conexão (usar BFS ou DFS)
+        if not self.vertices:
+            return False # grafo vazio não é árvore
+
+        start = self.vertices[0].rotulo
+        visitados = set()
+
+        def dfs(v):
+            visitados.add(v)
+            for aresta in self.arestas.values():
+                if aresta.v1.rotulo == v:
+                    vizinho = aresta.v2.rotulo
+                elif aresta.v2.rotulo == v:
+                    vizinho = aresta.v1.rotulo
+                else:
+                    continue
+                
+                if vizinho not in visitados:
+                    dfs(vizinho)
+
+        dfs(start)
+
+        if len(visitados) != len(self.vertices):
+            return False # não conexo
+        
+        # Graus dos vértices
+        graus = {v.rotulo: 0 for v in self.vertices}
+        for a in self.arestas.values():
+            graus[a.v1.rotulo] += 1
+            graus[a.v2.rotulo] += 1
+        
+        folhas = [v for v, g in graus.items() if g == 1]
+        return folhas
+    
+    def eh_bipartido(self):
+        if not self.vertices:
+            return True # Grafo vazio é bipartido
+
+        cores = {}
+        from collections import deque
+
+        for vertice in [v.rotulo for v in self.vertices]:
+            if vertice not in cores:
+                cores[vertice] = 0
+                fila = deque([vertice])
+
+                while fila:
+                    atual = fila.popleft()
+                    for aresta in self.arestas.values():
+                        if aresta.v1.rotulo == atual:
+                            vizinho = aresta.v2.rotulo
+                        elif aresta.v2.rotulo == atual:
+                            vizinho = aresta.v1.rotulo
+                        else:
+                            continue
+
+                        if vizinho not in cores:
+                            cores[vizinho] = 1 - cores[atual]
+                            fila.append(vizinho)
+                        elif cores[vizinho] == cores[atual]:
+                            # Vizinho com mesma cor -> não é bipartido
+                            return False
+        return True

@@ -11,14 +11,24 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
         Onde X, Z e W são vértices no grafo que não tem uma aresta entre eles.
         :return: Um conjunto (set) com os pares de vértices não adjacentes
         '''
-        pass
+        nao_adj = set()
+        for i, v1 in enumerate(self.vertices):
+            for v2 in self.vertices[i + 1:]:
+                extremos = {v1.rotulo, v2.rotulo}
+                existe_aresta = any({a.v1.rotulo, a.v2.rotulo} == extremos for a in self.arestas.values())
+                if not existe_aresta:
+                    nao_adj.add(f"{v1.rotulo}-{v2.rotulo}")
+        return nao_adj
 
     def ha_laco(self):
         '''
         Verifica se existe algum laço no grafo.
         :return: Um valor booleano que indica se existe algum laço.
         '''
-        pass
+        for aresta in self.dicionario_arestas:
+            if aresta.v1 == aresta.v2 :
+                return False
+        return True
 
 
     def grau(self, V=''):
@@ -28,15 +38,27 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
         :return: Um valor inteiro que indica o grau do vértice
         :raises: VerticeInvalidoError se o vértice não existe no grafo
         '''
-        pass
+        if not self.existe_rotulo_vertice(V):
+            raise VerticeInvalidoError()
+        grau = 0
+        for aresta in self.dicionario_arestas:
+            if aresta.v1.rotulo == V and aresta.v2.rotulo == V:
+                grau += 2
+            elif aresta.v1.rotulo == V or aresta.v2.rotulo == V:
+                grau += 1
+        return grau
 
     def ha_paralelas(self):
         '''
         Verifica se há arestas paralelas no grafo
         :return: Um valor booleano que indica se existem arestas paralelas no grafo.
         '''
-        pass
-
+        for linha in self.matriz:
+            for elemento in linha:
+                if len(elemento > 1):
+                    return True
+        return False
+    
     def arestas_sobre_vertice(self, V):
         '''
         Provê um conjunto (set) que contém os rótulos das arestas que

@@ -10,7 +10,7 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
         O conjunto terá o seguinte formato: {X-Z, X-W, ...}
         Onde X, Z e W são vértices no grafo que não tem uma aresta entre eles.
         :return: Um conjunto (set) com os pares de vértices não adjacentes
-        '''
+        
         nao_adj = set()
         for i, v1 in enumerate(self.vertices):
             for v2 in self.vertices[i + 1:]:
@@ -19,17 +19,20 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
                 if not existe_aresta:
                     nao_adj.add(f"{v1.rotulo}-{v2.rotulo}")
         return nao_adj
+        '''
+        pass
 
     def ha_laco(self):
         '''
         Verifica se existe algum laço no grafo.
         :return: Um valor booleano que indica se existe algum laço.
         '''
-        for aresta in self.dicionario_arestas:
-            if aresta.v1 == aresta.v2 :
-                return False
-        return True
-
+        for celula in self.matriz:
+            for arestas in celula:
+                for aresta in arestas:
+                    if arestas[aresta].v1 == arestas[aresta].v2 :
+                        return True
+        return False
 
     def grau(self, V=''):
         '''
@@ -40,13 +43,20 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
         '''
         if not self.existe_rotulo_vertice(V):
             raise VerticeInvalidoError()
+        
         grau = 0
-        for aresta in self.dicionario_arestas:
-            if aresta.v1.rotulo == V and aresta.v2.rotulo == V:
-                grau += 2
-            elif aresta.v1.rotulo == V or aresta.v2.rotulo == V:
-                grau += 1
-        return grau
+        for celula in self.matriz:
+            print("celula",celula)
+            for arestas in celula:
+                print("arestas",arestas)
+                for aresta in arestas:
+                    print("aresta",arestas)
+                    if arestas[aresta].v1.rotulo == V and arestas[aresta].v2.rotulo == V:
+                        grau += 2
+                    elif arestas[aresta].v1.rotulo == V or arestas[aresta].v2.rotulo == V:
+                        grau += 1 
+        return grau/2
+        
 
     def ha_paralelas(self):
         '''
@@ -55,7 +65,7 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
         '''
         for linha in self.matriz:
             for elemento in linha:
-                if len(elemento > 1):
+                if len(elemento) > 1:
                     return True
         return False
     

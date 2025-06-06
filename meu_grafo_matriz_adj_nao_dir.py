@@ -1,6 +1,6 @@
 from bibgrafo.grafo_matriz_adj_nao_dir import GrafoMatrizAdjacenciaNaoDirecionado
 from bibgrafo.grafo_errors import *
-
+from bibgrafo.vertice import Vertice
 
 class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
 
@@ -10,28 +10,29 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
         O conjunto terá o seguinte formato: {X-Z, X-W, ...}
         Onde X, Z e W são vértices no grafo que não tem uma aresta entre eles.
         :return: Um conjunto (set) com os pares de vértices não adjacentes
-        
-        nao_adj = set()
-        for i, v1 in enumerate(self.vertices):
-            for v2 in self.vertices[i + 1:]:
-                extremos = {v1.rotulo, v2.rotulo}
-                existe_aresta = any({a.v1.rotulo, a.v2.rotulo} == extremos for a in self.arestas.values())
-                if not existe_aresta:
-                    nao_adj.add(f"{v1.rotulo}-{v2.rotulo}")
-        return nao_adj
         '''
-        pass
+        nao_adjacentes = set()
+        num_vertices = len(self.vertices)
+
+        for i in range(num_vertices):
+            for j in range(i + 1, num_vertices):
+                if not self.matriz[i][j]:
+                    vertice_i_rotulo = self.vertices[i].rotulo
+                    vertice_j_rotulo = self.vertices[j].rotulo
+                    nao_adjacentes.add(f"{vertice_i_rotulo}-{vertice_j_rotulo}")
+        return nao_adjacentes
 
     def ha_laco(self):
         '''
         Verifica se existe algum laço no grafo.
         :return: Um valor booleano que indica se existe algum laço.
         '''
-        for celula in self.matriz:
-            for arestas in celula:
-                for aresta in arestas:
-                    if arestas[aresta].v1 == arestas[aresta].v2 :
-                        return True
+        # Sua lógica atual funciona, mas pode ser simplificada e otimizada
+        # para a estrutura de matriz de adjacência não direcionada.
+        # Em um grafo não direcionado, laços estão apenas na diagonal principal.
+        for i in range(len(self.vertices)):
+            if self.matriz[i][i]: # Se o dicionário de arestas na diagonal não estiver vazio
+                return True
         return False
 
     def grau(self, V=''):
@@ -42,20 +43,24 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
         :raises: VerticeInvalidoError se o vértice não existe no grafo
         '''
         if not self.existe_rotulo_vertice(V):
-            raise VerticeInvalidoError()
+            raise VerticeInvalidoError(f'O vértice {V} não existe no grafo.')
         
         grau = 0
-        for celula in self.matriz:
-            print("celula",celula)
-            for arestas in celula:
-                print("arestas",arestas)
-                for aresta in arestas:
-                    print("aresta",arestas)
-                    if arestas[aresta].v1.rotulo == V and arestas[aresta].v2.rotulo == V:
-                        grau += 2
-                    elif arestas[aresta].v1.rotulo == V or arestas[aresta].v2.rotulo == V:
-                        grau += 1 
-        return grau/2
+        indice_V = self.indice_do_vertice(Vertice(V)) # Obter o índice do vértice V
+
+        # Percorre a linha (ou coluna) correspondente ao vértice V na matriz
+        for j in range(len(self.vertices)):
+            arestas_na_celula = self.matriz[indice_V][j]
+            
+            # Se a célula não estiver vazia, some o número de arestas
+            if arestas_na_celula:
+                # Se for um laço (diagonal principal), ele conta 2 para o grau
+                if indice_V == j:
+                    grau += 2 * len(arestas_na_celula)
+                # Caso contrário, é uma aresta normal, conta 1 para o grau
+                else:
+                    grau += len(arestas_na_celula)
+        return grau
         
 
     def ha_paralelas(self):
@@ -73,15 +78,39 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
         '''
         Provê um conjunto (set) que contém os rótulos das arestas que
         incidem sobre o vértice passado como parâmetro
-        :param V: O vértice a ser analisado
+        :param V: O rótulo do vértice a ser analisado
         :return: Um conjunto com os rótulos das arestas que incidem sobre o vértice
         :raises: VerticeInvalidoError se o vértice não existe no grafo
         '''
-        pass
+        if not self.existe_rotulo_vertice(V):
+            raise VerticeInvalidoError(f'O vértice {V} não existe no grafo.')
+
+        arestas_incidentes = set()
+        indice_V = self.indice_do_vertice(Vertice(V))
+
+        for j in range(len(self.vertices)):
+            for rotulo_aresta in self.matriz[indice_V][j]:
+                arestas_incidentes.add(rotulo_aresta)
+        
+        return arestas_incidentes
 
     def eh_completo(self):
         '''
         Verifica se o grafo é completo.
+        Um grafo não direcionado é completo se todos os pares de vértices distintos
+        estão conectados por exatamente uma aresta, e não há laços.
         :return: Um valor booleano que indica se o grafo é completo
         '''
-        pass
+        if self.ha_laco():
+            return False
+
+        num_vertices = len(self.vertices)
+        
+        if num_vertices == 0 or num_vertices == 1:
+            return True
+
+        for i in range(num_vertices):
+            for j in range(i + 1, num_vertices):
+                if len(self.matriz[i][j]) != 1:
+                    return False
+        return True

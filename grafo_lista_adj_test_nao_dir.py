@@ -233,6 +233,20 @@ class TestGrafo(unittest.TestCase):
         )
         self.assertEqual(arestas_dfs, arestas_esperadas)
 
+        grafo = MeuGrafo()
+        grafo.adiciona_vertice('A')
+        grafo.adiciona_vertice('B')
+        grafo.adiciona_vertice('C')  # Desconexo
+        grafo.adiciona_aresta('a1', 'A', 'B')
+
+        resultado = grafo.dfs('A')
+        visitados = set(v.rotulo for v in resultado.vertices)
+
+        self.assertIn('A', visitados)
+        self.assertIn('B', visitados)
+        self.assertNotIn('C', visitados)
+
+
     def test_bfs(self):
         bfs_resultado = self.g_p.bfs('J')
         esperado = MeuGrafo()
@@ -257,3 +271,112 @@ class TestGrafo(unittest.TestCase):
             set(v.rotulo for v in esperado.vertices)
         )
         self.assertEqual(arestas_bfs, arestas_esperadas)
+
+        grafo = MeuGrafo()
+        grafo.adiciona_vertice('X')
+        grafo.adiciona_vertice('Y')
+        grafo.adiciona_vertice('Z')  # Desconexo
+        grafo.adiciona_aresta('a1', 'X', 'Y')
+        resultado = grafo.bfs('X')
+        visitados = set(v.rotulo for v in resultado.vertices)
+
+        self.assertIn('X', visitados)
+        self.assertIn('Y', visitados)
+        self.assertNotIn('Z', visitados)
+
+
+    def test_ha_ciclo(self):
+        grafo_com_ciclo = MeuGrafo()
+        grafo_com_ciclo.adiciona_vertice('A')
+        grafo_com_ciclo.adiciona_vertice('B')
+        grafo_com_ciclo.adiciona_vertice('C')
+        grafo_com_ciclo.adiciona_aresta('a1', 'A', 'B')
+        grafo_com_ciclo.adiciona_aresta('a2', 'B', 'C')
+        grafo_com_ciclo.adiciona_aresta('a3', 'C', 'A')  # Forma ciclo A-B-C-A
+
+        grafo_sem_ciclo = MeuGrafo()
+        grafo_sem_ciclo.adiciona_vertice('A')
+        grafo_sem_ciclo.adiciona_vertice('B')
+        grafo_sem_ciclo.adiciona_vertice('C')
+        grafo_sem_ciclo.adiciona_aresta('a1', 'A', 'B')
+        grafo_sem_ciclo.adiciona_aresta('a2', 'B', 'C')
+
+        self.assertTrue(grafo_com_ciclo.ha_ciclo())
+        self.assertFalse(grafo_sem_ciclo.ha_ciclo())
+
+        grafo = MeuGrafo()
+        grafo.adiciona_vertice('A')
+        grafo.adiciona_vertice('B')
+        grafo.adiciona_vertice('C')
+        grafo.adiciona_vertice('D')
+        grafo.adiciona_aresta('a1', 'A', 'B')
+        grafo.adiciona_aresta('a2', 'B', 'C')
+        grafo.adiciona_aresta('a3', 'C', 'A')  # ciclo
+        grafo.adiciona_vertice('E')  # componente desconexo
+
+        self.assertTrue(grafo.ha_ciclo())
+
+
+    def test_eh_arvore(self):
+        grafo_arvore = MeuGrafo()
+        grafo_arvore.adiciona_vertice('A')
+        grafo_arvore.adiciona_vertice('B')
+        grafo_arvore.adiciona_vertice('C')
+        grafo_arvore.adiciona_aresta('a1', 'A', 'B')
+        grafo_arvore.adiciona_aresta('a2', 'A', 'C')
+
+        grafo_com_ciclo = MeuGrafo()
+        grafo_com_ciclo.adiciona_vertice('A')
+        grafo_com_ciclo.adiciona_vertice('B')
+        grafo_com_ciclo.adiciona_vertice('C')
+        grafo_com_ciclo.adiciona_aresta('a1', 'A', 'B')
+        grafo_com_ciclo.adiciona_aresta('a2', 'B', 'C')
+        grafo_com_ciclo.adiciona_aresta('a3', 'C', 'A')  # ciclo
+
+        self.assertEqual(set(grafo_arvore.eh_arvore()), {'B', 'C'})  # folhas
+        self.assertFalse(grafo_com_ciclo.eh_arvore())
+
+        grafo = MeuGrafo()
+        self.assertFalse(grafo.eh_arvore())  # Grafo vazio não é árvore
+
+        grafo = MeuGrafo()
+        grafo.adiciona_vertice('A')
+        grafo.adiciona_vertice('B')  # Sem aresta
+
+        self.assertFalse(grafo.eh_arvore())
+
+
+    def test_eh_bipartido(self):
+        grafo_bipartido = MeuGrafo()
+        grafo_bipartido.adiciona_vertice('1')
+        grafo_bipartido.adiciona_vertice('2')
+        grafo_bipartido.adiciona_vertice('3')
+        grafo_bipartido.adiciona_vertice('4')
+        grafo_bipartido.adiciona_aresta('a1', '1', '2')
+        grafo_bipartido.adiciona_aresta('a2', '2', '3')
+        grafo_bipartido.adiciona_aresta('a3', '3', '4')
+
+        grafo_nao_bipartido = MeuGrafo()
+        grafo_nao_bipartido.adiciona_vertice('A')
+        grafo_nao_bipartido.adiciona_vertice('B')
+        grafo_nao_bipartido.adiciona_vertice('C')
+        grafo_nao_bipartido.adiciona_aresta('a1', 'A', 'B')
+        grafo_nao_bipartido.adiciona_aresta('a2', 'B', 'C')
+        grafo_nao_bipartido.adiciona_aresta('a3', 'C', 'A')  # ciclo ímpar (3 vértices)
+
+        self.assertTrue(grafo_bipartido.eh_bipartido())
+        self.assertFalse(grafo_nao_bipartido.eh_bipartido())
+
+        grafo = MeuGrafo()
+        grafo.adiciona_vertice('A')
+        grafo.adiciona_vertice('B')
+        grafo.adiciona_vertice('C')
+        grafo.adiciona_vertice('D')
+        grafo.adiciona_aresta('a1', 'A', 'B')
+        grafo.adiciona_aresta('a2', 'B', 'C')
+        grafo.adiciona_aresta('a3', 'C', 'D')
+        grafo.adiciona_aresta('a4', 'D', 'A')  # ciclo par (4 vértices)
+
+        self.assertTrue(grafo.eh_bipartido())
+        grafo = MeuGrafo()
+        self.assertTrue(grafo.eh_bipartido())  # Grafo vazio é bipartido por definição

@@ -125,9 +125,6 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
                     linha.append(0)
                 else:
                     linha.append(1)
-                valores = self.matriz[i][j].values()
-                for v in valores:
-                    print(v.__str__())
             matriz_adj.append(linha)
         print(matriz_adj)
     

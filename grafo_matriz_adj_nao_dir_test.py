@@ -51,7 +51,7 @@ class TestGrafo(unittest.TestCase):
             .arestas([Aresta('asd', a, b)]).build()
 
         self.g_d2 = GrafoBuilder().tipo(MeuGrafo()).vertices(4).build()
-        self.g_p.marshall()
+
 
     def test_vertices_nao_adjacentes(self):
         self.assertEqual(self.g_p.vertices_nao_adjacentes(),

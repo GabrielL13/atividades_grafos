@@ -31,7 +31,7 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
         # para a estrutura de matriz de adjacência não direcionada.
         # Em um grafo não direcionado, laços estão apenas na diagonal principal.
         for i in range(len(self.vertices)):
-            if self.matriz[i][i]: # Se o dicionário de arestas na diagonal não estiver vazio
+            if self.matriz[i][i]: 
                 return True
         return False
 
@@ -46,18 +46,14 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
             raise VerticeInvalidoError(f'O vértice {V} não existe no grafo.')
         
         grau = 0
-        indice_V = self.indice_do_vertice(Vertice(V)) # Obter o índice do vértice V
+        indice_V = self.indice_do_vertice(Vertice(V)) 
 
-        # Percorre a linha (ou coluna) correspondente ao vértice V na matriz
         for j in range(len(self.vertices)):
             arestas_na_celula = self.matriz[indice_V][j]
             
-            # Se a célula não estiver vazia, some o número de arestas
             if arestas_na_celula:
-                # Se for um laço (diagonal principal), ele conta 2 para o grau
                 if indice_V == j:
                     grau += 2 * len(arestas_na_celula)
-                # Caso contrário, é uma aresta normal, conta 1 para o grau
                 else:
                     grau += len(arestas_na_celula)
         return grau
@@ -114,3 +110,24 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
                 if len(self.matriz[i][j]) != 1:
                     return False
         return True
+    
+    def marshall(self):
+        '''
+        Use o grafo de matriz de adjacência para fazer uma função para encontrar a matriz de alcançabilidade de um grafo usando o algoritmo de Warshall.
+        '''
+        num_vertices = len(self.vertices)
+        matriz_adj = list()
+        for i in range(num_vertices):
+            print(self.vertices[i].rotulo)
+            linha = list()
+            for j in range(num_vertices):
+                if not self.matriz[i][j]:
+                    linha.append(0)
+                else:
+                    linha.append(1)
+                valores = self.matriz[i][j].values()
+                for v in valores:
+                    print(v.__str__())
+            matriz_adj.append(linha)
+        print(matriz_adj)
+    

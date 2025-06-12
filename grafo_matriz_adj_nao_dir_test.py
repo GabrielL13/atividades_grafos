@@ -129,5 +129,24 @@ class TestGrafo(unittest.TestCase):
         self.assertFalse((self.g_l4.eh_completo()))
         self.assertFalse((self.g_l5.eh_completo()))
 
-    '''def test_marshall(self):'''
-    
+    def test_warshall(self):
+        #Grafo Paraíba
+        warshall_pb = self.g_p.warshall()
+        num_vertices = len(self.g_p.vertices)
+        self.assertEqual(len(warshall_pb), num_vertices)
+        for linha in warshall_pb:
+            self.assertEqual(len(linha), num_vertices)
+
+        #Grafo completo
+        warshall_gc = self.g_c.warshall()
+        for linha in warshall_gc:
+            self.assertTrue(all(x == 1 for x in linha))
+
+        #Grafo desconexo
+        warshall_gd2 = self.g_d2.warshall()
+        for i in range(len(warshall_gd2)):
+            for j in range(len(warshall_gd2)):
+                if i == j:
+                    self.assertEqual(warshall_gd2[i][j], 1)
+                else:
+                    self.assertEqual(warshall_gd2[i][j], 0)

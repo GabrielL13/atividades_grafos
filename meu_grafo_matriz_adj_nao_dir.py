@@ -111,20 +111,34 @@ class MeuGrafo(GrafoMatrizAdjacenciaNaoDirecionado):
                     return False
         return True
     
-    def marshall(self):
+    def warshall(self):
         '''
-        Use o grafo de matriz de adjacência para fazer uma função para encontrar a matriz de alcançabilidade de um grafo usando o algoritmo de Warshall.
+        Implementa o algoritmo de Warshall para encontrar a matriz de alcançabilidade
+        do grafo representado por matriz de adjacência.
+        :return: Uma matriz (lista de listas) com 0s e 1s indicando alcançabilidade
         '''
         num_vertices = len(self.vertices)
-        matriz_adj = list()
+
+        # Inicializa a matriz de alcançabilidade com base na matriz de adjacência
+        matriz_alcancabilidade = []
         for i in range(num_vertices):
-            print(self.vertices[i].rotulo)
-            linha = list()
+            linha = []
             for j in range(num_vertices):
-                if not self.matriz[i][j]:
-                    linha.append(0)
-                else:
+                if i == j:
+                    linha.append(1)  # Reflexividade
+                elif self.matriz[i][j]:
                     linha.append(1)
-            matriz_adj.append(linha)
-        print(matriz_adj)
-    
+                else:
+                    linha.append(0)
+            matriz_alcancabilidade.append(linha)
+
+        # Algoritmo de Warshall: A = A ∨ (A[i][k] ∧ A[k][j])
+        for k in range(num_vertices):
+            for i in range(num_vertices):
+                for j in range(num_vertices):
+                    if matriz_alcancabilidade[i][j] == 0:
+                        matriz_alcancabilidade[i][j] = (
+                            matriz_alcancabilidade[i][k] and matriz_alcancabilidade[k][j]
+                        )
+
+        return matriz_alcancabilidade

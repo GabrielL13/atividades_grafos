@@ -39,7 +39,7 @@ class MeuGrafo(GrafoListaAdjacenciaNaoDirecionado):
         grau = 0
         for aresta in self.arestas.values():
             if aresta.v1.rotulo == V and aresta.v2.rotulo == V:
-                grau += 2  # laço conta duas vezes
+                grau += 2  
             elif aresta.v1.rotulo == V or aresta.v2.rotulo == V:
                 grau += 1
         return grau

@@ -99,27 +99,23 @@ class MeuGrafo(GrafoListaAdjacenciaDirecionado):
                     return False
         return True
     
-    def menor_caminho(self, origem, destino):
-        if not self.existe_rotulo_vertice(origem) or not self.existe_rotulo_vertice(destino):
-            print("Origem ou destino não existem no grafo.")
-            return
+    def menor_caminho(self, V, X):
+        if not self.existe_rotulo_vertice(V) or not self.existe_rotulo_vertice(X):
+            raise VerticeInvalidoError()
 
-        # Verifica se há pesos negativos
         for aresta in self.arestas.values():
             if aresta.peso < 0:
-                print("O grafo possui pesos negativos. Dijkstra não pode ser executado.")
-                return
+                print("O grafo possui peso negativos > ",aresta.rotulo)
+                return False
 
-        # Inicializa distâncias, visitados e predecessores
-        dist = {v.rotulo: float('inf') for v in self.vertices}
+        dist = {v.rotulo: 10000000000000 for v in self.vertices}
         visitado = {v.rotulo: False for v in self.vertices}
         anterior = {v.rotulo: None for v in self.vertices}
-        dist[origem] = 0
+        dist[V] = 0
 
         while True:
-            # Encontra o vértice não visitado com menor distância
             u = None
-            menor_dist = float('inf')
+            menor_dist = 10000000000000
             for v in self.vertices:
                 r = v.rotulo
                 if not visitado[r] and dist[r] < menor_dist:
@@ -127,11 +123,9 @@ class MeuGrafo(GrafoListaAdjacenciaDirecionado):
                     u = r
 
             if u is None:
-                break  # Todos acessíveis já foram visitados
-
+                break
             visitado[u] = True
 
-            # Atualiza as distâncias dos vizinhos
             for aresta in self.arestas.values():
                 if aresta.v1.rotulo == u:
                     v = aresta.v2.rotulo
@@ -141,28 +135,26 @@ class MeuGrafo(GrafoListaAdjacenciaDirecionado):
                             dist[v] = dist[u] + peso
                             anterior[v] = u
 
-        # Reconstrução do caminho
-        if dist[destino] == float('inf'):
-            print(f"Não é possível chegar de {origem} até {destino}.")
-            return
+        if dist[X] == 10000000000000:
+            return False
 
         caminho = []
-        atual = destino
+        atual = X
         while atual is not None:
             caminho.insert(0, atual)
             atual = anterior[atual]
 
-        print(f"Menor caminho de {origem} até {destino}: {' -> '.join(caminho)}")
-        print(f"Custo total: {dist[destino]}")
+        return [' -> '.join(caminho),dist[X]]
 
-    def bellman_ford(self, origem, destino):
-        # Passo 1: Inicializar distâncias
-        distancias = {v: float('inf') for v in self.vertices}
+    def bellman_ford(self, V, X):
+        if not self.existe_rotulo_vertice(V) or not self.existe_rotulo_vertice(X):
+            raise VerticeInvalidoError()
+        
+        distancias = {v: 10000000000000 for v in self.vertices}
         predecessores = {v: None for v in self.vertices}
-        distancias[origem] = 0
+        distancias[V] = 0
 
-        # Passo 2: Relaxar as arestas V-1 vezes
-        for _ in range(len(self.vertices) - 1):
+        for i in range(len(self.vertices) - 1):
             for aresta in self.arestas:
                 u = aresta.origem
                 v = aresta.destino
@@ -171,26 +163,21 @@ class MeuGrafo(GrafoListaAdjacenciaDirecionado):
                     distancias[v] = distancias[u] + peso
                     predecessores[v] = u
 
-        # Passo 3: Verificar ciclos negativos
         for aresta in self.arestas:
             u = aresta.origem
             v = aresta.destino
             peso = aresta.peso
-            if distancias[u] != float('inf') and distancias[u] + peso < distancias[v]:
+            if distancias[u] != 10000000000000 and distancias[u] + peso < distancias[v]:
                 print("Ciclo negativo detectado. Não é possível calcular o menor caminho.")
                 return False
 
-        # Passo 4: Reconstruir o caminho se possível
-        if distancias[destino] == float('inf'):
-            print("Não há caminho do vértice", origem, "até o vértice", destino)
-            return
+        if distancias[X] == 10000000000000:
+            return False
 
         caminho = []
-        atual = destino
+        atual = X
         while atual is not None:
             caminho.insert(0, atual)
             atual = predecessores[atual]
 
-        print("Menor caminho de", origem, "para", destino, ":", caminho)
-        print("Custo total:", distancias[destino])
-
+        return [caminho,distancias[X]]

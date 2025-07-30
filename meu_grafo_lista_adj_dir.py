@@ -98,3 +98,99 @@ class MeuGrafo(GrafoListaAdjacenciaDirecionado):
                 if not existe_aresta:
                     return False
         return True
+    
+    def menor_caminho(self, origem, destino):
+        if not self.existe_rotulo_vertice(origem) or not self.existe_rotulo_vertice(destino):
+            print("Origem ou destino não existem no grafo.")
+            return
+
+        # Verifica se há pesos negativos
+        for aresta in self.arestas.values():
+            if aresta.peso < 0:
+                print("O grafo possui pesos negativos. Dijkstra não pode ser executado.")
+                return
+
+        # Inicializa distâncias, visitados e predecessores
+        dist = {v.rotulo: float('inf') for v in self.vertices}
+        visitado = {v.rotulo: False for v in self.vertices}
+        anterior = {v.rotulo: None for v in self.vertices}
+        dist[origem] = 0
+
+        while True:
+            # Encontra o vértice não visitado com menor distância
+            u = None
+            menor_dist = float('inf')
+            for v in self.vertices:
+                r = v.rotulo
+                if not visitado[r] and dist[r] < menor_dist:
+                    menor_dist = dist[r]
+                    u = r
+
+            if u is None:
+                break  # Todos acessíveis já foram visitados
+
+            visitado[u] = True
+
+            # Atualiza as distâncias dos vizinhos
+            for aresta in self.arestas.values():
+                if aresta.v1.rotulo == u:
+                    v = aresta.v2.rotulo
+                    peso = aresta.peso
+                    if not visitado[v]:
+                        if dist[u] + peso < dist[v]:
+                            dist[v] = dist[u] + peso
+                            anterior[v] = u
+
+        # Reconstrução do caminho
+        if dist[destino] == float('inf'):
+            print(f"Não é possível chegar de {origem} até {destino}.")
+            return
+
+        caminho = []
+        atual = destino
+        while atual is not None:
+            caminho.insert(0, atual)
+            atual = anterior[atual]
+
+        print(f"Menor caminho de {origem} até {destino}: {' -> '.join(caminho)}")
+        print(f"Custo total: {dist[destino]}")
+
+    def bellman_ford(self, origem, destino):
+        # Passo 1: Inicializar distâncias
+        distancias = {v: float('inf') for v in self.vertices}
+        predecessores = {v: None for v in self.vertices}
+        distancias[origem] = 0
+
+        # Passo 2: Relaxar as arestas V-1 vezes
+        for _ in range(len(self.vertices) - 1):
+            for aresta in self.arestas:
+                u = aresta.origem
+                v = aresta.destino
+                peso = aresta.peso
+                if distancias[u] != float('inf') and distancias[u] + peso < distancias[v]:
+                    distancias[v] = distancias[u] + peso
+                    predecessores[v] = u
+
+        # Passo 3: Verificar ciclos negativos
+        for aresta in self.arestas:
+            u = aresta.origem
+            v = aresta.destino
+            peso = aresta.peso
+            if distancias[u] != float('inf') and distancias[u] + peso < distancias[v]:
+                print("Ciclo negativo detectado. Não é possível calcular o menor caminho.")
+                return False
+
+        # Passo 4: Reconstruir o caminho se possível
+        if distancias[destino] == float('inf'):
+            print("Não há caminho do vértice", origem, "até o vértice", destino)
+            return
+
+        caminho = []
+        atual = destino
+        while atual is not None:
+            caminho.insert(0, atual)
+            atual = predecessores[atual]
+
+        print("Menor caminho de", origem, "para", destino, ":", caminho)
+        print("Custo total:", distancias[destino])
+

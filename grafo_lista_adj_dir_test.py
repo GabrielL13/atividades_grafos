@@ -71,6 +71,29 @@ class TestGrafo(unittest.TestCase):
 
         self.g_d2 = GrafoBuilder().tipo(MeuGrafo()).vertices(4).build()
 
+                # Grafo com pesos negativos mas sem ciclos negativos
+        self.g_neg_peso = MeuGrafo()
+        self.g_neg_peso.adiciona_vertice("A")
+        self.g_neg_peso.adiciona_vertice("B")
+        self.g_neg_peso.adiciona_vertice("C")
+        self.g_neg_peso.adiciona_vertice("D")
+        self.g_neg_peso.adiciona_aresta("a1", "A", "B", 4)
+        self.g_neg_peso.adiciona_aresta("a2", "A", "C", 2)
+        self.g_neg_peso.adiciona_aresta("a3", "C", "B", -1)
+        self.g_neg_peso.adiciona_aresta("a4", "B", "D", 2)
+        self.g_neg_peso.adiciona_aresta("a5", "C", "D", 5)
+
+        # Grafo com ciclo negativo
+        self.g_neg_ciclo = MeuGrafo()
+        self.g_neg_ciclo.adiciona_vertice("A")
+        self.g_neg_ciclo.adiciona_vertice("B")
+        self.g_neg_ciclo.adiciona_vertice("C")
+        self.g_neg_ciclo.adiciona_vertice("D")
+        self.g_neg_ciclo.adiciona_aresta("a1", "A", "B", 1)
+        self.g_neg_ciclo.adiciona_aresta("a2", "B", "C", -2)
+        self.g_neg_ciclo.adiciona_aresta("a3", "C", "A", -2)
+        self.g_neg_ciclo.adiciona_aresta("a4", "C", "D", 2)
+
     def test_adiciona_aresta(self):
         self.assertTrue(self.g_p.adiciona_aresta('a10', 'J', 'C'))
         a = ArestaDirecionada("zxc", self.g_p.get_vertice("C"), self.g_p.get_vertice("Z"))
@@ -200,3 +223,20 @@ class TestGrafo(unittest.TestCase):
         self.assertFalse((self.g_l5.eh_completo()))
         self.assertFalse((self.g_d.eh_completo()))
         self.assertFalse((self.g_d2.eh_completo()))
+
+    def test_menor_caminho(self):
+        self.assertEqual(self.g_p_sem_paralelas.menor_caminho('J', 'C'), ['J -> C', 1])
+        self.assertFalse(self.g_p_sem_paralelas.menor_caminho('E', 'J'))
+        self.assertFalse(self.g_p_sem_paralelas.menor_caminho('Z', 'C'))
+        self.assertFalse(self.g_p_sem_paralelas.menor_caminho('J', 'Z'))
+        self.assertFalse(self.g_neg_peso.menor_caminho('A', 'D')) 
+
+    def test_bellman_ford(self):
+        self.assertEqual(self.g_p_sem_paralelas.bellman_ford('J', 'C'), ['J -> C', 1])
+        self.assertEqual(self.g_neg_peso.bellman_ford('A', 'D'), ['A -> C -> B -> D', 3])
+        self.assertFalse(self.g_p_sem_paralelas.bellman_ford('E', 'J'))
+        with self.assertRaises(VerticeInvalidoError):
+            self.g_neg_peso.bellman_ford('A', 'Z')
+        with self.assertRaises(VerticeInvalidoError):
+            self.g_neg_peso.bellman_ford('Z', 'B')
+        self.assertEqual(self.g_neg_ciclo.bellman_ford('A', 'D'),"Ciclo negativo detectado. Não é possível calcular o menor caminho.")

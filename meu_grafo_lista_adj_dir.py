@@ -105,17 +105,17 @@ class MeuGrafo(GrafoListaAdjacenciaDirecionado):
 
         for aresta in self.arestas.values():
             if aresta.peso < 0:
-                print("O grafo possui peso negativos > ",aresta.rotulo)
+                print("O grafo possui peso negativos >", aresta.rotulo)
                 return False
 
-        dist = {v.rotulo: 10000000000000 for v in self.vertices}
+        dist = {v.rotulo: float('inf') for v in self.vertices}
         visitado = {v.rotulo: False for v in self.vertices}
         anterior = {v.rotulo: None for v in self.vertices}
         dist[V] = 0
 
         while True:
             u = None
-            menor_dist = 10000000000000
+            menor_dist = float('inf')
             for v in self.vertices:
                 r = v.rotulo
                 if not visitado[r] and dist[r] < menor_dist:
@@ -124,18 +124,18 @@ class MeuGrafo(GrafoListaAdjacenciaDirecionado):
 
             if u is None:
                 break
+            
             visitado[u] = True
 
             for aresta in self.arestas.values():
                 if aresta.v1.rotulo == u:
                     v = aresta.v2.rotulo
                     peso = aresta.peso
-                    if not visitado[v]:
-                        if dist[u] + peso < dist[v]:
-                            dist[v] = dist[u] + peso
-                            anterior[v] = u
+                    if not visitado[v] and dist[u] + peso < dist[v]:
+                        dist[v] = dist[u] + peso
+                        anterior[v] = u
 
-        if dist[X] == 10000000000000:
+        if dist[X] == float('inf'):
             return False
 
         caminho = []
@@ -144,40 +144,43 @@ class MeuGrafo(GrafoListaAdjacenciaDirecionado):
             caminho.insert(0, atual)
             atual = anterior[atual]
 
-        return [' -> '.join(caminho),dist[X]]
+        caminho_formatado = ' -> '.join(caminho)
+        return [caminho_formatado, dist[X]]
 
     def bellman_ford(self, V, X):
         if not self.existe_rotulo_vertice(V) or not self.existe_rotulo_vertice(X):
             raise VerticeInvalidoError()
-        
-        distancias = {v: 10000000000000 for v in self.vertices}
-        predecessores = {v: None for v in self.vertices}
-        distancias[V] = 0
 
-        for i in range(len(self.vertices) - 1):
-            for aresta in self.arestas:
-                u = aresta.origem
-                v = aresta.destino
+        dist = {v.rotulo: float('inf') for v in self.vertices}
+        anterior = {v.rotulo: None for v in self.vertices}
+        dist[V] = 0
+
+        for _ in range(len(self.vertices) - 1):
+            for aresta in self.arestas.values():
+                origem = aresta.v1.rotulo
+                destino = aresta.v2.rotulo
                 peso = aresta.peso
-                if distancias[u] != float('inf') and distancias[u] + peso < distancias[v]:
-                    distancias[v] = distancias[u] + peso
-                    predecessores[v] = u
 
-        for aresta in self.arestas:
-            u = aresta.origem
-            v = aresta.destino
+                if dist[origem] != float('inf') and dist[origem] + peso < dist[destino]:
+                    dist[destino] = dist[origem] + peso
+                    anterior[destino] = origem
+
+        for aresta in self.arestas.values():
+            origem = aresta.v1.rotulo
+            destino = aresta.v2.rotulo
             peso = aresta.peso
-            if distancias[u] != 10000000000000 and distancias[u] + peso < distancias[v]:
-                print("Ciclo negativo detectado. Não é possível calcular o menor caminho.")
-                return False
 
-        if distancias[X] == 10000000000000:
+            if dist[origem] != float('inf') and dist[origem] + peso < dist[destino]:
+                return "Ciclo negativo detectado. Não é possível calcular o menor caminho."
+
+        if dist[X] == float('inf'):
             return False
 
         caminho = []
         atual = X
         while atual is not None:
             caminho.insert(0, atual)
-            atual = predecessores[atual]
+            atual = anterior[atual]
 
-        return [caminho,distancias[X]]
+        caminho_formatado = ' -> '.join(caminho)
+        return [caminho_formatado, dist[X]]
